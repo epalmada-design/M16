@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MP16 · Processos bàsics de producció culinària</title>
+<style>
+:root{--ink:#1f2937;--mut:#6b7280;--line:#cbd5e1;--bg:#f1f5f9;--card:#fff;
+--z1:#fde68a;--z2:#bfdbfe;--z3:#bbf7d0;--z4:#fbcfe8;--z5:#ddd6fe;--z6:#fed7aa;--zp:#e2e8f0}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Segoe UI",Arial,sans-serif;color:var(--ink);background:var(--bg);font-size:12px}
+.sheet{width:297mm;height:210mm;margin:10px auto;padding:7mm 8mm;background:#fff;display:flex;flex-direction:column;gap:3mm;box-shadow:0 2px 12px #0002}
+header{display:flex;align-items:center;gap:10px;border-bottom:2px solid var(--ink);padding-bottom:2mm}
+header h1{font-size:18px;margin:0;flex:1}
+header label{font-size:11px;color:var(--mut)}
+input,select{font:inherit;color:inherit}
+input[type=date]{border:1px solid var(--line);border-radius:4px;padding:2px 4px;font-weight:600}
+.sched{display:grid;grid-template-columns:repeat(4,1fr);gap:2mm}
+.blk{border:1px solid var(--line);border-radius:5px;padding:2px 6px;display:flex;justify-content:space-between;align-items:center;background:#f8fafc}
+.blk b{font-size:11px}
+.blk input{width:92px;border:none;background:transparent;text-align:right;font-weight:600;font-size:11px}
+main{flex:1;display:grid;grid-template-columns:98mm 1fr;gap:4mm;min-height:0}
+h2{font-size:12px;margin:0 0 1.5mm;text-transform:uppercase;letter-spacing:.04em;color:var(--mut)}
+/* plànol */
+.plan{display:flex;flex-direction:column;gap:3mm;border:1px dashed var(--line);border-radius:6px;padding:2.5mm;min-height:0}
+.table{display:flex;align-items:stretch;gap:1.5mm;border:2px solid #475569;border-radius:6px;padding:1.5mm;background:#f8fafc;flex:1;min-height:0}
+.sink{width:9mm;border:1.5px solid #64748b;border-radius:4px;background:#e0f2fe;display:flex;align-items:center;justify-content:center;font-size:9px;color:#0369a1;writing-mode:vertical-rl;letter-spacing:.1em}
+.zones{flex:1;display:grid;gap:1.5mm}
+.zones.two{grid-template-columns:1fr 1fr}
+.zones.four{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}
+.tlabel{position:absolute}
+.zone{border:1.5px solid #64748b;border-radius:5px;padding:1.5mm 2mm;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+.zone .zh{display:flex;align-items:center;gap:4px;font-weight:700;font-size:11px}
+.zone .zn{background:#1f2937;color:#fff;border-radius:50%;width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;flex:none}
+.zone .ze{font-size:11px;font-weight:600;line-height:1.15;margin:1px 0 2px}
+.zone ul{margin:0;padding:0;list-style:none;font-size:10.5px;line-height:1.25;flex:1}
+.zone .zc{display:flex;align-items:center;gap:4px;font-size:10px;margin-top:auto}
+.zone .zc input{width:14px;height:14px;margin:0}
+.zone.ok{outline:2.5px solid #16a34a}
+.zone[data-z="1"]{background:var(--z1)}.zone[data-z="2"]{background:var(--z2)}.zone[data-z="3"]{background:var(--z3)}
+.zone[data-z="4"]{background:var(--z4)}.zone[data-z="5"]{background:var(--z5)}.zone[data-z="6"]{background:var(--z6)}
+.zone[data-z="0"]{background:var(--zp)}
+.tname{font-size:9px;color:var(--mut);text-align:center;margin-top:-1mm}
+/* dreta */
+.right{display:flex;flex-direction:column;gap:3mm;min-height:0;overflow:hidden}
+.elabs{display:flex;flex-wrap:wrap;gap:3px;font-size:11px}
+.elab{display:flex;align-items:center;gap:5px;border-radius:5px;padding:2px 5px;border:1px solid var(--line)}
+.elab input{flex:1;min-width:0;border:none;background:transparent;font-weight:600}
+.elab .zn{background:#1f2937;color:#fff;border-radius:50%;width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;flex:none}
+table{border-collapse:collapse;width:100%}
+th,td{border:1px solid var(--line);padding:1.5px 4px;text-align:left;font-size:12px;height:6.4mm}
+th{background:#1f2937;color:#fff;font-size:10px;text-transform:uppercase;letter-spacing:.03em}
+td.c,th.c{text-align:center}
+td select{border:none;background:transparent;width:100%;font-size:11px;padding:0}
+td input[type=checkbox]{width:15px;height:15px}
+.chip{display:inline-block;border-radius:10px;padding:0 7px;font-weight:700;font-size:10.5px}
+footer{display:flex;justify-content:space-between;font-size:9.5px;color:var(--mut);border-top:1px solid var(--line);padding-top:1mm}
+.bar{display:flex;flex-wrap:wrap;gap:6px;margin:8px auto;width:297mm}
+.bar button{font:inherit;font-size:12px;padding:6px 12px;border-radius:6px;border:1px solid #475569;background:#fff;cursor:pointer}
+.bar button.p{background:#1f2937;color:#fff}
+.compact .slots{grid-template-columns:1fr 1fr 1fr!important}.compact .slots input{grid-column:auto!important}
+.hist{width:297mm;margin:10px auto 30px;background:#fff;padding:6mm 8mm;box-shadow:0 2px 12px #0002;font-size:12px;overflow-x:auto}
+.hist h3{margin:0 0 3mm;font-size:14px}.hist table{margin-bottom:6mm}.hist td,.hist th{height:auto;padding:3px 6px;vertical-align:top}
+.tabs{display:flex;gap:4px;width:297mm;margin:8px auto 0}
+.tabs button{font:inherit;font-size:13px;font-weight:600;padding:7px 16px;border:1px solid #94a3b8;border-bottom:none;border-radius:8px 8px 0 0;background:#e2e8f0;color:#475569;cursor:pointer}
+.tabs button.on{background:#fff;color:#1f2937;border-color:#1f2937}
+.tabs button.priv.on{background:#fef3c7;border-color:#b45309;color:#78350f}
+.notes{width:297mm;max-width:100%;margin:0 auto 30px;background:#fff;padding:7mm 8mm;box-shadow:0 2px 12px #0002;font-size:12px}
+.notes .nh{display:flex;align-items:center;gap:10px;flex-wrap:wrap;border-bottom:2px solid #b45309;padding-bottom:2mm;margin-bottom:2mm}
+.notes .nh h1{font-size:18px;margin:0;flex:1}
+.notes .nh label{font-size:11px;color:var(--mut)}
+.notes .warn{background:#fef3c7;border:1px solid #f59e0b;border-radius:6px;padding:4px 8px;margin:0 0 4mm;color:#78350f;font-size:11.5px}
+.notes h3{margin:4mm 0 2mm;font-size:13px}
+.notes table{margin-bottom:2mm}
+.notes td,.notes th{height:auto;padding:3px 6px;font-size:12px}
+.notes .mat{overflow-x:auto}
+.notes .mat th{white-space:nowrap;text-align:center}
+.notes .mat td.c select{text-align:center;font-weight:700;width:46px}
+.notes .btn{font:inherit;font-size:12px;padding:5px 10px;border-radius:6px;border:1px solid #475569;background:#fff;cursor:pointer}
+@page{size:A4 landscape;margin:0}
+@media print{
+ body{background:#fff}.sheet{margin:0;box-shadow:none}.bar,.hist,.tabs{display:none!important}.notes{box-shadow:none;margin:0;padding:6mm}
+ *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+ input[type=date]{border:none}
+ select{-webkit-appearance:none;appearance:none}
+}
+</style>
+</head>
+<body>
+<nav class="tabs">
+ <button id="tab-pla" class="on" onclick="showTab('pla')">📋 Pla d'aula</button>
+ <button id="tab-notes" class="priv" onclick="showTab('notes')">M16</button>
+</nav>
+
+<div id="view-pla">
+<div class="bar">
+ <button class="p" onclick="window.print()">🖨️ Imprimir (A4 apaïsat)</button>
+ <button onclick="toggleSort()" id="sortbtn">↕ Ordre: alfabètic</button>
+ <button onclick="repartir()">🔄 Repartir tasques i companys</button>
+ <button onclick="toggleHist()">📖 Historial d'elaboracions</button>
+ <button onclick="clearChecks()">☐ Esborrar «zona neta»</button>
+ <button onclick="downloadJSON()">💾 Descarregar còpia</button>
+ <button onclick="$('file').click()">📂 Carregar còpia</button>
+ <button onclick="deleteDay()">🗑 Esborrar aquest dia</button>
+ <button onclick="fileCreate()" id="fcreate" title="Tria on desar el fitxer de dades (Chrome o Edge). Després es desa sol a cada canvi.">📁 Crear fitxer de dades</button>
+ <button onclick="fileOpen()" id="fopen" title="Enllaça un fitxer de dades que ja tinguis">📂 Obrir fitxer de dades</button>
+ <button onclick="fileReconnect()" id="freconn" style="display:none;background:#fef3c7;border-color:#b45309">🔑 Reconnectar</button>
+ <button onclick="fileUnlink()" id="funl" style="display:none" title="Deixa de desar al fitxer (el fitxer no s'esborra)">✖ Desenllaçar</button>
+ <span id="fstat" style="width:100%;font-size:11.5px;color:#64748b"></span>
+ <input type="file" id="file" accept=".json" style="display:none" onchange="loadJSON(this)">
+</div>
+
+<div class="sheet">
+ <header>
+  <h1>MP16 · Processos bàsics de producció culinària<br><small style="font-size:11px;font-weight:500;color:var(--mut)">Pla d'aula · zones de treball i tasques rotatives</small></h1>
+  <label>Data <input type="date" id="date"></label>
+  <label>Dies guardats <select id="days" onchange="switchDay(this.value)" style="border:1px solid var(--line);border-radius:4px;padding:2px 4px"></select></label>
+ </header>
+
+ 
+ <main>
+  <section>
+   <h2>Plànol de l'aula · qui deixa cada zona neta</h2>
+   <div class="plan" id="plan" style="height:calc(100% - 6mm)"></div>
+  </section>
+
+  <section class="right">
+   <div>
+    <h2>Elaboracions del dia · qui les fa</h2>
+    <div class="elabs" id="elabs"></div>
+   </div>
+   <div style="flex:1;min-height:0;display:flex;flex-direction:column">
+    <div style="flex:1;min-height:0"><table id="tbl" style="height:100%"></table></div><datalist id="dl"></datalist>
+   </div>
+  </section>
+ </main>
+
+ <footer>
+  <span>Elisa Palmada</span>
+  <span>Cada tasca rotativa és responsable de deixar neta la seva zona ✔</span>
+  <span id="upd"></span>
+ </footer>
+</div>
+
+<div class="hist" id="hist" style="display:none"></div>
+</div>
+
+<div id="view-notes" style="display:none">
+ <div class="notes">
+  <div class="nh">
+   <h1>🔒 Notes · MP16 · Processos bàsics de producció culinària</h1>
+   <label>Data <input type="date" id="ndate" style="border:1px solid var(--line);border-radius:4px;padding:2px 4px;font-weight:600"></label>
+   <label>Dies guardats <select id="ndays" onchange="switchDay(this.value)" style="border:1px solid var(--line);border-radius:4px;padding:2px 4px"></select></label>
+   <button class="btn" onclick="downloadCSV()">📊 Exportar a Excel (.csv)</button>
+   <button class="btn" onclick="window.print()">🖨️ Imprimir</button>
+  </div>
+  <p class="warn">🔒 Aquesta pestanya és només per a tu: no la deixis oberta a la pantalla de l'aula. Els alumnes veuen la pestanya «Pla d'aula».</p>
+  <h3>Valoració del dia (1–10)</h3>
+  <table id="ntbl"></table>
+  <h3>Totes les notes per dia</h3>
+  <div class="mat"><table id="nmat"></table></div>
+ </div>
+</div>
+
+<script>
+const STUDENTS=["Amira","Anastasiia","Jan","Ablaye","Henriette","Jose","Elena","Sofia","Anderson","Jairo","Eloi"];
+const ROLES=["Plonge","Escombraries i terres","Suport de cuina i servei","Neveres","Material i roba","Corretorns"];
+const NR=ROLES.length;
+// grups de tasca (color) i zones de l'aula amb les tasques responsables de deixar-les netes
+const GCOL=["#bae6fd","#fde68a","#bbf7d0","#fbcfe8","#fed7aa","#e9d5ff"];
+const ROLEGROUP=[0,1,2,3,4,5];
+const ZONES=[
+ {n:1,label:"Plonge · utensilis",roles:[0],g:0},
+ {n:2,label:"Escombraries i terres",roles:[1],g:1},
+ {n:3,label:"Suport de cuina i servei",roles:[2],g:2},
+ {n:4,label:"Neveres",roles:[3],g:3},
+ {n:5,label:"Material i roba",roles:[4],g:4},
+ {n:6,label:"Corretorns",roles:[5],g:5,tag:"C"}];
+const zl=n=>ZONES[n-1].tag||n;
+const SLOTS=3;
+const CAP=[2,2,2,2,2,1]; // alumnes per tasca: 2 a cada tasca i 1 a Corretorns
+const KEY="pla_aula_v7",K6="pla_aula_v6",K5="pla_aula_v5",K4="pla_aula_v4",K3="pla_aula_v3";
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const norm=s=>(s||"").trim().toLowerCase();
+const today=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+const fmt=d=>{const[y,m,dd]=d.split("-");return dd+"/"+m+"/"+y};
+const WD=["diumenge","dilluns","dimarts","dimecres","dijous","divendres","dissabte"];
+const wd=d=>WD[new Date(d+"T12:00:00").getDay()];
+const zonesOfRole=r=>ZONES.filter(z=>z.roles.includes(r)).map(z=>z.n);
+
+function blankDay(){return{sorted:false,clean:Array(8).fill(false),
+ st:STUDENTS.map((n,i)=>({elabs:Array(SLOTS).fill(""),role:-1,score:0}))}}
+function nextDayFrom(p){
+ if(!p)return blankDay();
+ return{sorted:false,clean:Array(8).fill(false),
+  st:p.st.map(s=>({elabs:Array(SLOTS).fill(""),role:-1,score:0}))};
+}
+function convOld(d){ // dies de versions anteriors: es conserven elaboracions i notes; les tasques passen al nou llistat
+ if(!d||!Array.isArray(d.st))return;
+ const map={0:0,1:1,2:1,3:4};
+ d.st.forEach((s,i)=>{
+  if(!Array.isArray(s.elabs))s.elabs=[s.elab||""];
+  while(s.elabs.length<SLOTS)s.elabs.push("");
+  s.elabs=s.elabs.slice(0,SLOTS);
+  s.role=map[s.role]!==undefined?map[s.role]:i%NR;
+  if(s.score==null)s.score=0;
+  delete s.elab;delete s.zone;
+ });
+ d.clean=Array(8).fill(false);d.sorted=false;delete d.elab;delete d.times;
+}
+function conv5(d){ // v5 tenia 8 tasques; ara Escombraries+Terres, Suport+Servei i Material+Roba són una sola tasca
+ if(!d||!Array.isArray(d.st))return;
+ const m=[0,1,1,2,2,3,4,4];
+ d.st.forEach(s=>{s.role=m[s.role]!==undefined?m[s.role]:0});
+}
+function conv6(d){ // v6 tenia 7 zones (Neveres 4+5, Material i roba 6+7); ara són 5 zones + Corretorns
+ if(!d||!Array.isArray(d.clean))return;
+ const c=d.clean;
+ d.clean=[false,!!c[1],!!c[2],!!c[3],!!(c[4]&&c[5]),!!(c[6]&&c[7]),false,false];
+}
+function valid(d){return d&&Array.isArray(d.st)&&d.st.length===STUDENTS.length&&Array.isArray(d.clean)&&d.clean.length===8}
+let DB=null,S,D;
+try{DB=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+if(!DB||!DB.days)DB={v:7,days:{},last:null};
+function tryLoad(k,fn){
+ try{const o=JSON.parse(localStorage.getItem(k));
+  if(o&&o.days&&Object.keys(o.days).length){Object.values(o.days).forEach(fn);DB={v:7,days:o.days,last:o.last};return true}}catch(e){}
+ return false;
+}
+if(!Object.keys(DB.days).length){
+ if(!tryLoad(K6,conv6)&&!tryLoad(K5,d=>{conv5(d);conv6(d)})&&!tryLoad(K4,convOld)){
+  try{const o=JSON.parse(localStorage.getItem(K3));
+   if(o&&o.st){const d=o.date||today();delete o.date;convOld(o);DB={v:7,days:{[d]:o},last:d}}}catch(e){}
+ }
+}
+Object.keys(DB.days).forEach(k=>{if(!valid(DB.days[k]))delete DB.days[k]});
+D=DB.last&&DB.days[DB.last]?DB.last:today();
+if(!DB.days[D])DB.days[D]=nextDayFrom(prevDay(D));
+S=DB.days[D];DB.last=D;
+
+function prevDay(d){const ks=Object.keys(DB.days).sort();if(!ks.length)return null;const b=ks.filter(k=>k<d);return DB.days[b.length?b[b.length-1]:ks[ks.length-1]]}
+function save(){try{DB.v=7;DB.last=D;DB.savedAt=Date.now();localStorage.setItem(KEY,JSON.stringify(DB))}catch(e){}queueFile()}
+
+function zoneHTML(n){
+ const z=ZONES[n-1];
+ const idx=S.st.map((s,i)=>z.roles.includes(s.role)?i:-1).filter(i=>i>=0);
+ const el=i=>S.st[i].elabs.some(Boolean)?` <small style="color:#374151">(${esc(S.st[i].elabs.filter(Boolean).join(", "))})</small>`:"";
+ const chk=`<label class="zc"><input type="checkbox" ${S.clean[n]?"checked":""} onchange="setClean(${n},this.checked)"> Zona neta</label>`;
+ if(z.tag)return `<div class="zone" data-z="${n}" style="background:${GCOL[z.g]};flex-direction:row;align-items:center;gap:8px">
+  <div class="zh" style="flex:none"><span class="zn">${z.tag}</span><span>${esc(z.label)}</span></div>
+  <div style="flex:1;font-size:10.5px;line-height:1.25">${idx.length?idx.map(i=>`<b>${esc(STUDENTS[i])}</b>${el(i)}`).join(" · "):`<span style="color:#777">— ningú —</span>`}</div>
+  <div style="flex:none">${chk}</div></div>`;
+ return `<div class="zone" data-z="${n}" style="background:${GCOL[z.g]}">
+  <div class="zh"><span class="zn">${n}</span><span>${esc(z.label)}</span></div>
+  <ul${n===4||n===5?' style="columns:2;column-gap:12px"':''}>${idx.length?idx.map(i=>`<li>• <b>${esc(STUDENTS[i])}</b>${el(i)}</li>`).join(""):`<li style="color:#777">— ningú —</li>`}</ul>
+  ${chk}</div>`;
+}
+const sink=()=>`<div class="sink">PICA</div>`;
+function renderPlan(){
+ $("plan").innerHTML=`
+  <div class="table" style="flex:1">${sink()}<div class="zones two">${zoneHTML(2)}${zoneHTML(3)}</div>${sink()}</div>
+  <div class="table" style="flex:1.1">${sink()}<div class="zones" style="grid-template-columns:1fr;grid-template-rows:1fr 1fr">${zoneHTML(4)}${zoneHTML(5)}</div>${sink()}</div>
+  <div class="table" style="flex:.8">${sink()}<div class="zones" style="grid-template-columns:1fr">${zoneHTML(1)}</div>${sink()}</div>
+  <div class="table" style="flex:.4;border-style:dashed">${zoneHTML(6)}</div>`;
+ document.querySelectorAll(".zone").forEach(el=>{if(S.clean[+el.dataset.z])el.classList.add("ok")});
+}
+function renderElabs(){
+ const m=new Map();
+ S.st.forEach((s,i)=>s.elabs.forEach(e=>{const k=norm(e);if(!k)return;if(!m.has(k))m.set(k,{n:e.trim(),who:[]});const w=m.get(k).who;if(!w.includes(i))w.push(i)}));
+ const items=[...m.values()];
+ $("elabs").innerHTML=items.length
+  ?items.map(x=>`<div style="border:1px solid var(--line);border-radius:5px;padding:1px 6px;background:#f8fafc"><b>${esc(x.n)}</b> <span style="color:#475569">· ${x.who.map(i=>esc(STUDENTS[i])).join(", ")}</span></div>`).join("")
+  :`<div style="color:var(--mut)">Anota a la taula les elaboracions de cada alumne i aquí s'agrupen soles.</div>`;
+}
+function order(){
+ const o=S.st.map((s,i)=>i);
+ if(S.sorted)o.sort((a,b)=>((S.st[a].role<0?99:S.st[a].role)-(S.st[b].role<0?99:S.st[b].role))||a-b);
+ return o;
+}
+function avg(i){
+ const v=Object.values(DB.days).map(d=>d.st[i].score).filter(x=>x>0);
+ return v.length?{m:(v.reduce((a,b)=>a+b,0)/v.length),n:v.length}:null;
+}
+const scoreBg=v=>v?`hsl(${(v-1)/9*120},75%,82%)`:"transparent";
+function renderTable(){
+ const names=[...new Set(Object.values(DB.days).flatMap(d=>d.st.flatMap(s=>s.elabs)).map(x=>x.trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"ca"));
+ $("dl").innerHTML=names.map(n=>`<option value="${esc(n)}">`).join("");
+ $("sortbtn").textContent="↕ Ordre: "+(S.sorted?"per tasca":"alfabètic");
+ let h=`<tr><th class="c" style="width:18px" title="Clica el número d'un alumne per marcar-lo absent">#</th><th style="width:62px">Alumne/a</th><th style="width:146px">Tasca rotativa</th><th>Elaboracions (fins a 3)</th><th class="c" style="width:70px;white-space:nowrap">Zona neta</th></tr>`;
+ order().forEach((i,n)=>{
+  const s=S.st[i],a=avg(i),zs=zonesOfRole(s.role),gc=s.role>=0?GCOL[ROLEGROUP[s.role]]:"#f1f5f9";
+  const num=`<td class="c" style="cursor:pointer" title="Clica el número per marcar l'alumne absent o present" onclick="toggleAbsent(${i})">${n+1}</td>`;
+  if(s.absent){h+=`<tr style="background:#f1f5f9;color:#94a3b8">${num}<td style="font-size:12.5px;text-decoration:line-through"><b>${esc(STUDENTS[i])}</b></td><td colspan="3" style="font-style:italic">Absent aquest dia · clica el número per tornar-lo a posar</td></tr>`;return}
+  const slots=s.elabs.map((e,k)=>`<input list="dl" value="${esc(e)}" title="${esc(e)}" placeholder="${k===0?"elaboració…":"+ elaboració"}" onchange="setSlot(${i},${k},this.value)" style="${k===2?"grid-column:1/-1;":""}width:100%;min-width:0;font-size:12px;padding:1px 5px;border:1px solid var(--line);border-radius:3px;background:#fff">`).join("");
+  const cl=zs.map(z=>`<label style="display:inline-flex;align-items:center;gap:1px;background:${gc};border-radius:8px;padding:0 3px;font-weight:700;font-size:10px"><span>${zl(z)}</span><input type="checkbox" style="width:13px;height:13px;margin:0" ${S.clean[z]?"checked":""} onchange="setClean(${z},this.checked)"></label>`).join(" ");
+  h+=`<tr>${num}<td style="font-size:12.5px"><b>${esc(STUDENTS[i])}</b></td>
+  <td style="background:${gc}"><select onchange="setRole(${i},+this.value)" style="font-weight:600;font-size:11.5px;text-overflow:clip"><option value="-1" ${s.role<0?"selected":""}>— sense tasca —</option>${ROLES.map((r,k)=>`<option value="${k}" ${k===s.role?"selected":""}>${r}</option>`).join("")}</select></td>
+  <td><div class="slots" style="display:grid;grid-template-columns:1fr 1fr;gap:3px">${slots}</div></td>
+  <td class="c" style="white-space:nowrap">${cl}</td></tr>`;
+ });
+ $("tbl").innerHTML=h;
+ renderNotes();
+}
+function renderDays(){
+ const ks=Object.keys(DB.days).sort().reverse();
+ const opts=ks.map(k=>`<option value="${k}" ${k===D?"selected":""}>${fmt(k)} (${wd(k)})</option>`).join("");
+ $("days").innerHTML=opts;$("ndays").innerHTML=opts;
+ $("date").value=D;$("ndate").value=D;
+ $("upd").textContent="Actualitzat: 22/11/2026";
+}
+function fit(){ // si no hi cap tot, les 3 elaboracions de cada alumne passen a una sola línia
+ const t=$("tbl"),r=document.querySelector(".right");if(!t||!r)return;
+ t.classList.remove("compact");
+ if(r.scrollHeight>r.clientHeight+1)t.classList.add("compact");
+}
+function refresh(){renderPlan();renderTable();renderElabs();renderHist();fit()}
+function renderAll(){renderDays();refresh()}
+
+function switchDay(d){
+ if(!d)return;
+ save();
+ if(!DB.days[d])DB.days[d]=nextDayFrom(prevDay(d));
+ D=d;S=DB.days[d];save();renderAll();
+}
+function deleteDay(){
+ if(!confirm("Segur que vols esborrar el dia "+fmt(D)+" (elaboracions, notes i tasques)? No es pot desfer."))return;
+ delete DB.days[D];
+ const ks=Object.keys(DB.days).sort();
+ D=ks.length?ks[ks.length-1]:today();
+ if(!DB.days[D])DB.days[D]=blankDay();
+ S=DB.days[D];save();renderAll();
+}
+function setSlot(i,k,v){S.st[i].elabs[k]=v.trim();save();renderPlan();renderTable();renderElabs();renderHist();fit()}
+function showTab(t){
+ $("view-pla").style.display=t==="pla"?"block":"none";
+ $("view-notes").style.display=t==="notes"?"block":"none";
+ $("tab-pla").classList.toggle("on",t==="pla");
+ $("tab-notes").classList.toggle("on",t==="notes");
+ if(t==="notes")renderNotes();
+ window.scrollTo(0,0);
+}
+function renderNotes(){
+ const tb=$("ntbl");if(!tb)return;
+ const mean=a=>a.length?(a.reduce((x,y)=>x+y,0)/a.length):null;
+ const f1=v=>v==null?"":v.toFixed(1).replace(".",",");
+ const sel=(k,i,v)=>`<select onchange="setScoreDay('${k}',${i},+this.value)" style="border:1px solid var(--line);border-radius:4px;font-weight:700"><option value="0" ${!v?"selected":""}>–</option>${[1,2,3,4,5,6,7,8,9,10].map(x=>`<option value="${x}" ${x===v?"selected":""}>${x}</option>`).join("")}</select>`;
+ // valoració del dia
+ let h=`<tr><th class="c" style="width:24px">#</th><th style="width:90px">Alumne/a</th><th style="width:170px">Tasca rotativa</th><th>Elaboracions</th><th class="c" style="width:80px">Nota</th><th class="c" style="width:90px">Mitjana</th></tr>`;
+ STUDENTS.forEach((n,i)=>{
+  const s=S.st[i],all=Object.values(DB.days).map(d=>d.st[i].score).filter(x=>x>0),a=mean(all);
+  if(s.absent){h+=`<tr style="background:#f1f5f9;color:#94a3b8"><td class="c">${i+1}</td><td><b style="text-decoration:line-through">${esc(n)}</b></td><td colspan="3" style="font-style:italic">Absent aquest dia</td><td class="c"><b>${f1(a)}</b>${a?` <small>(${all.length})</small>`:""}</td></tr>`;return}
+  h+=`<tr><td class="c">${i+1}</td><td><b>${esc(n)}</b></td>
+  <td style="background:${s.role>=0?GCOL[ROLEGROUP[s.role]]:"#f1f5f9"}">${s.role>=0?esc(ROLES[s.role]):'<span style="color:#94a3b8">— sense tasca —</span>'}</td>
+  <td>${esc(s.elabs.filter(Boolean).join(", "))}</td>
+  <td class="c" style="background:${scoreBg(s.score)}">${sel(D,i,s.score)}</td>
+  <td class="c"><b>${f1(a)}</b>${a?` <small style="color:#64748b">(${all.length} dies)</small>`:""}</td></tr>`;
+ });
+ tb.innerHTML=h;
+ // matriu per dies
+ const ks=Object.keys(DB.days).sort();
+ let m=`<tr><th style="text-align:left">Alumne/a</th>${ks.map(k=>`<th style="${k===D?"background:#b45309":""}">${fmt(k).slice(0,5)}<br><small style="font-weight:400;text-transform:none">${wd(k).slice(0,3)}.</small></th>`).join("")}<th style="background:#475569">Mitjana</th></tr>`;
+ STUDENTS.forEach((n,i)=>{
+  const all=ks.map(k=>DB.days[k].st[i].score).filter(x=>x>0);
+  m+=`<tr><td><b>${esc(n)}</b></td>${ks.map(k=>{const st=DB.days[k].st[i];
+   return st.absent?`<td class="c" style="background:#f1f5f9;color:#94a3b8;font-size:10px">abs.</td>`:`<td class="c" style="background:${scoreBg(st.score)}">${sel(k,i,st.score)}</td>`}).join("")}<td class="c"><b>${f1(mean(all))}</b></td></tr>`;
+ });
+ m+=`<tr style="background:#f8fafc"><td><b>Mitjana del dia</b></td>${ks.map(k=>`<td class="c"><b>${f1(mean(DB.days[k].st.map(s=>s.score).filter(x=>x>0)))}</b></td>`).join("")}<td></td></tr>`;
+ $("nmat").innerHTML=m;
+}
+function toggleAbsent(i){const s=S.st[i];s.absent=!s.absent;if(s.absent)s.role=-1;save();renderPlan();renderTable();renderElabs();renderHist();fit()}
+function setRole(i,r){S.st[i].role=r;save();renderPlan();renderTable()}
+function setScoreDay(k,i,v){DB.days[k].st[i].score=v;save();renderNotes()}
+function setScore(i,v){setScoreDay(D,i,v)}
+function toggleSort(){S.sorted=!S.sorted;save();renderTable()}
+function setClean(z,v){S.clean[z]=v;save();renderPlan();renderTable()}
+function repartir(){
+ if(S.st.some(s=>s.role>=0)&&!confirm("Ja hi ha tasques assignades en aquest dia. Vols tornar-les a repartir?"))return;
+ const n=STUDENTS.length;
+ const pres=S.st.map((s,i)=>s.absent?-1:i).filter(i=>i>=0),m=pres.length;
+ if(!m){S.st.forEach(s=>s.role=-1);save();renderPlan();renderTable();return}
+ // historial: tasques, companys i qui ha anat sol en una tasca (que no sigui Corretorns)
+ const past=Object.keys(DB.days).filter(k=>k!==D&&DB.days[k].st.some(s=>s.role>=0)).sort();
+ const cnt=Array.from({length:n},()=>Array(NR).fill(0));
+ const tog=Array.from({length:n},()=>Array(n).fill(0));
+ const lastRole=Array(n).fill(-1),lastTog=Array.from({length:n},()=>Array(n).fill(0));
+ const solo=Array(n).fill(0),lastSolo=Array(n).fill(0);
+ past.forEach((k,idx)=>{
+  const st=DB.days[k].st,isLast=idx===past.length-1;
+  const gs=Array(NR).fill(0);st.forEach(s=>{if(s.role>=0)gs[s.role]++});
+  st.forEach((s,i)=>{
+   if(s.role<0)return;
+   cnt[i][s.role]++;if(isLast)lastRole[i]=s.role;
+   if(s.role!==NR-1&&gs[s.role]===1){solo[i]++;if(isLast)lastSolo[i]=1}
+   for(let j=i+1;j<n;j++)if(st[j].role===s.role){tog[i][j]++;tog[j][i]++;if(isLast){lastTog[i][j]=1;lastTog[j][i]=1}}
+  });
+ });
+ const cost=a=>{
+  let c=0;const gs=Array(NR).fill(0);pres.forEach(i=>gs[a[i]]++);
+  pres.forEach((i,x)=>{
+   const r=a[i];
+   c+=4*cnt[i][r]+(r===lastRole[i]?20:0);
+   if(r!==NR-1&&gs[r]===1)c+=12*solo[i]+(lastSolo[i]?40:0);
+   for(let y=x+1;y<m;y++){const j=pres[y];if(a[j]===r)c+=9*tog[i][j]+35*lastTog[i][j]}
+  });
+  return c;
+ };
+ const rnd=k=>Math.floor(Math.random()*k);
+ let best=null,bestC=Infinity;
+ for(let rs=0;rs<120;rs++){
+  // places per tasca: 2 a cada una i 1 a Corretorns; si falten alumnes, es treu una plaça (triada a l'atzar)
+  const caps=CAP.slice();let tot=caps.reduce((x,y)=>x+y,0);
+  while(tot>m){
+   const two=caps.map((c,r)=>c===2?r:-1).filter(r=>r>=0);
+   let r;
+   if(two.length)r=two[rnd(two.length)];
+   else{const one=caps.map((c,r)=>c>=1&&r!==NR-1?r:-1).filter(r=>r>=0);r=one.length?one[rnd(one.length)]:(caps[NR-1]>0?NR-1:-1)}
+   if(r<0)break;caps[r]--;tot--;
+  }
+  const slots=[];caps.forEach((c,r)=>{for(let k=0;k<c;k++)slots.push(r)});
+  for(let k=0;slots.length<m;k++)slots.push(k%(NR-1));
+  slots.sort(()=>Math.random()-.5);
+  const order=pres.slice().sort(()=>Math.random()-.5);
+  const a=Array(n).fill(-1);order.forEach((st,k)=>a[st]=slots[k]);
+  let c=cost(a);
+  for(let it=0;it<500;it++){
+   const i=pres[rnd(m)],j=pres[rnd(m)];
+   if(a[i]===a[j])continue;
+   const t=a[i];a[i]=a[j];a[j]=t;
+   const c2=cost(a);
+   if(c2<=c)c=c2;else{a[j]=a[i];a[i]=t}
+  }
+  if(c<bestC){bestC=c;best=a.slice()}
+ }
+ S.st.forEach((s,i)=>s.role=s.absent?-1:best[i]);
+ save();renderPlan();renderTable();
+}
+let histOpen=false;
+function toggleHist(){histOpen=!histOpen;renderHist();if(histOpen)$("hist").scrollIntoView({behavior:"smooth"})}
+function renderHist(){
+ const el=$("hist");el.style.display=histOpen?"block":"none";if(!histOpen)return;
+ const ks=Object.keys(DB.days).sort();
+ let h=`<h3>📖 Historial d'elaboracions · què ha fet cada alumne cada dia</h3><table><tr><th>Alumne/a</th>${ks.map(k=>`<th>${fmt(k)}<br><small style="font-weight:400">${wd(k)}</small></th>`).join("")}</tr>`;
+ STUDENTS.forEach((n,i)=>{h+=`<tr><td><b>${esc(n)}</b></td>${ks.map(k=>`<td>${esc(DB.days[k].st[i].elabs.filter(Boolean).join(", "))}</td>`).join("")}</tr>`});
+ h+=`</table><h3>Elaboracions fetes (totals)</h3><table><tr><th>Elaboració</th><th>Cops</th><th>Alumnes que l'han feta</th></tr>`;
+ const m=new Map();
+ ks.forEach(k=>DB.days[k].st.forEach((s,i)=>s.elabs.forEach(e=>{const q=norm(e);if(!q)return;if(!m.has(q))m.set(q,{n:e.trim(),c:0,w:new Set()});const x=m.get(q);x.c++;x.w.add(i)})));
+ const items=[...m.values()].sort((a,b)=>a.n.localeCompare(b.n,"ca"));
+ h+=items.length?items.map(x=>`<tr><td><b>${esc(x.n)}</b></td><td>${x.c}</td><td>${[...x.w].map(i=>esc(STUDENTS[i])).join(", ")}</td></tr>`).join(""):`<tr><td colspan="3" style="color:#777">Encara no hi ha cap elaboració anotada.</td></tr>`;
+ el.innerHTML=h+"</table>";
+}
+function clearChecks(){S.clean=S.clean.fill(false);save();renderPlan();renderTable()}
+$("date").onchange=e=>{if(e.target.value)switchDay(e.target.value);else $("date").value=D};
+$("ndate").onchange=e=>{if(e.target.value)switchDay(e.target.value);else $("ndate").value=D};
+
+function dl(name,text,type){
+ const a=document.createElement("a");
+ a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;
+ document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+function downloadJSON(){save();dl("pla_aula_copia_"+today()+".json",payload(),"application/json")}
+function parseData(text){
+ try{
+  const o=JSON.parse(text);
+  if(!o||!o.days)return null;
+  if(o.v===6)Object.values(o.days).forEach(conv6);else if(o.v===5)Object.values(o.days).forEach(d=>{conv5(d);conv6(d)});else if(o.v!==7)Object.values(o.days).forEach(convOld);
+  Object.keys(o.days).forEach(k=>{if(!valid(o.days[k]))delete o.days[k]});
+  return Object.keys(o.days).length?o:null;
+ }catch(e){return null}
+}
+function applyData(o){
+ DB={v:7,days:o.days,last:o.last,savedAt:o.savedAt||0};
+ const ks=Object.keys(DB.days).sort();
+ D=DB.days[DB.last]?DB.last:ks[ks.length-1];S=DB.days[D];save();renderAll();
+}
+function loadJSON(inp){
+ const f=inp.files[0];inp.value="";if(!f)return;
+ const r=new FileReader();
+ r.onload=()=>{
+  const o=parseData(r.result);
+  if(!o){alert("Aquest fitxer no és una còpia vàlida d'aquest full.");return}
+  if(!confirm("Es carregaran "+Object.keys(o.days).length+" dies i se substituiran les dades que hi ha ara en aquest navegador. Continuar?"))return;
+  applyData(o);
+ };
+ r.readAsText(f);
+}
+function downloadCSV(){
+ const q=v=>'"'+String(v).replace(/"/g,'""')+'"';
+ const rows=[["Data","Dia","Alumne/a","Elaboracions","Tasca rotativa","Zones a deixar netes","Zones netes","Nota (1-10)"]];
+ Object.keys(DB.days).sort().forEach(k=>{
+  const d=DB.days[k];
+  d.st.forEach((s,i)=>{
+   const zs=zonesOfRole(s.role);
+   rows.push([fmt(k),wd(k),STUDENTS[i],s.elabs.filter(Boolean).join(" + "),(s.absent?"Absent":(ROLES[s.role]||"")),zs.map(zl).join(" + "),zs.map(z=>d.clean[z]?"Sí":"No").join(" + "),s.score||""]);
+  });
+ });
+ dl("valoracions_aula.csv","\ufeff"+rows.map(r=>r.map(q).join(";")).join("\r\n"),"text/csv;charset=utf-8");
+}
+// ---------- fitxer de dades al teu ordinador (Chrome / Edge) ----------
+var FH=null,FT=null,FOK=false,FQ=Promise.resolve();
+const FSA=typeof window.showSaveFilePicker==="function"&&typeof window.showOpenFilePicker==="function";
+const hhmm=t=>new Date(t).toLocaleTimeString("ca-ES",{hour:"2-digit",minute:"2-digit"});
+function fstat(msg,k){const e=$("fstat");if(!e)return;e.textContent=msg;e.style.color=k==="ok"?"#15803d":k==="warn"?"#b45309":"#64748b"}
+function fbtns(){
+ $("freconn").style.display=FH&&!FOK?"inline-block":"none";
+ $("funl").style.display=FH?"inline-block":"none";
+}
+function payload(){return JSON.stringify({students:STUDENTS,roles:ROLES,...DB},null,1)}
+function idb(){return new Promise((res,rej)=>{const r=indexedDB.open("m16fs",1);r.onupgradeneeded=()=>r.result.createObjectStore("h");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
+async function idbSet(v){try{const d=await idb();await new Promise((res,rej)=>{const t=d.transaction("h","readwrite");v?t.objectStore("h").put(v,"handle"):t.objectStore("h").delete("handle");t.oncomplete=res;t.onerror=()=>rej(t.error)})}catch(e){}}
+async function idbGet(){try{const d=await idb();return await new Promise((res,rej)=>{const q=d.transaction("h").objectStore("h").get("handle");q.onsuccess=()=>res(q.result||null);q.onerror=()=>rej(q.error)})}catch(e){return null}}
+async function perm(h,ask){
+ try{
+  if(!h.queryPermission)return true;
+  let p=await h.queryPermission({mode:"readwrite"});
+  if(p==="granted")return true;
+  if(!ask)return false;
+  p=await h.requestPermission({mode:"readwrite"});return p==="granted";
+ }catch(e){return false}
+}
+function writeFile(){
+ FQ=FQ.then(async()=>{
+  if(!FH||!FOK)return;
+  try{
+   const w=await FH.createWritable();await w.write(payload());await w.close();
+   fstat("✅ Desat a «"+FH.name+"» · "+hhmm(Date.now()),"ok");
+  }catch(e){
+   FOK=false;fbtns();
+   fstat("⚠ No s'ha pogut desar a «"+FH.name+"». Clica «Reconnectar». Mentrestant les dades queden al navegador.","warn");
+  }
+ });
+ return FQ;
+}
+function queueFile(){if(!FH||!FOK)return;clearTimeout(FT);FT=setTimeout(()=>{FT=null;writeFile()},300)}
+window.addEventListener("beforeunload",()=>{if(FT){clearTimeout(FT);FT=null;writeFile()}});
+async function syncFile(){
+ // llegeix el fitxer: afegeix els dies que només hi són al fitxer i decideix qui guanya en els dies diferents
+ let txt="";try{txt=await (await FH.getFile()).text()}catch(e){}
+ if(txt.trim()){
+  const o=parseData(txt);
+  if(!o){
+   if(!confirm("El fitxer «"+FH.name+"» té contingut que no és una còpia d'aquest full. Si continues, es sobreescriurà. Continuar?")){await fileUnlink(true);return}
+  }else{
+   const blank=d=>d.st.every(x=>x.role<0&&!x.score&&!x.absent&&!x.elabs.some(Boolean));
+   const miss=Object.keys(o.days).filter(k=>!DB.days[k]||blank(DB.days[k]));
+   miss.forEach(k=>{DB.days[k]=o.days[k]});
+   const diff=Object.keys(o.days).filter(k=>!miss.includes(k)&&JSON.stringify(o.days[k])!==JSON.stringify(DB.days[k]));
+   let used=0;
+   if(diff.length&&(o.savedAt||0)>(DB.savedAt||0)){
+    if(confirm("El fitxer té "+diff.length+" dia(es) amb dades diferents i més recents que les d'aquest navegador.\n\nAcceptar = fer servir les del fitxer\nCancel·lar = mantenir les d'aquest navegador (se sobreescriuran al fitxer)")){diff.forEach(k=>{DB.days[k]=o.days[k]});used=diff.length}
+   }
+   if(miss.length||used){
+    const ks=Object.keys(DB.days).sort();
+    if(!DB.days[D])D=ks[ks.length-1];S=DB.days[D];renderAll();
+   }
+  }
+ }
+ FOK=true;fbtns();
+ save();            // actualitza la data i escriu al fitxer
+ return writeFile();
+}
+async function link(h){
+ if(!(await perm(h,true))){fstat("No s'ha donat permís per escriure al fitxer.","warn");return}
+ FH=h;FOK=false;await idbSet(h);await syncFile();
+}
+async function fileCreate(){
+ try{
+  const h=await window.showSaveFilePicker({suggestedName:"M16_dades.json",types:[{description:"Dades M16 (.json)",accept:{"application/json":[".json"]}}]});
+  await link(h);
+ }catch(e){if(e&&e.name!=="AbortError")fstat("⚠ No s'ha pogut crear el fitxer: "+e.message,"warn")}
+}
+async function fileOpen(){
+ try{
+  const [h]=await window.showOpenFilePicker({types:[{description:"Dades M16 (.json)",accept:{"application/json":[".json"]}}],multiple:false});
+  await link(h);
+ }catch(e){if(e&&e.name!=="AbortError")fstat("⚠ No s'ha pogut obrir el fitxer: "+e.message,"warn")}
+}
+async function fileReconnect(){
+ if(!FH)return;
+ if(await perm(FH,true))await syncFile();else fstat("No s'ha donat permís per escriure al fitxer.","warn");
+}
+async function fileUnlink(quiet){
+ clearTimeout(FT);FT=null;FH=null;FOK=false;await idbSet(null);fbtns();
+ fstat(quiet?"Fitxer no enllaçat.":"Fitxer desenllaçat. Les dades continuen al navegador i el fitxer no s'ha esborrat.","");
+}
+async function fileInit(){
+ if(!FSA){
+  $("fcreate").style.display="none";$("fopen").style.display="none";
+  fstat("Per desar les dades en un fitxer del teu ordinador cal Chrome o Edge. Mentrestant, descarrega una còpia de tant en tant.","");return;
+ }
+ const h=await idbGet();
+ if(!h){fstat("Les dades es desen només en aquest navegador. Crea un fitxer de dades per tenir-ne còpia al teu ordinador.","");return}
+ FH=h;
+ if(await perm(h,false))await syncFile();
+ else{fbtns();fstat("⚠ Fitxer «"+h.name+"» enllaçat. Clica «Reconnectar» per tornar a desar-hi.","warn")}
+}
+renderAll();
+fileInit();
+</script>
+</body>
+</html>
